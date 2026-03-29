@@ -1,8 +1,12 @@
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
 using Todo.Api.Data;
+using Todo.Api.Entities;
+using Todo.Api.Services;
+
 
 
 namespace Todo.Api
@@ -41,6 +45,9 @@ namespace Todo.Api
             });
 
             builder.Services.AddAuthorization();
+
+            builder.Services.AddScoped<IPasswordHasher<User>, PasswordHasher<User>>();
+            builder.Services.AddScoped<JwtTokenService>();
 
             var app = builder.Build();
 
