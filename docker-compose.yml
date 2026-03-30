@@ -1,0 +1,27 @@
+services:
+  db:
+    image: postgres:16
+    container_name: todo-db
+    environment:
+      POSTGRES_USER: todo
+      POSTGRES_PASSWORD: todo
+      POSTGRES_DB: todo_db
+    ports:
+      - "5432:5432"
+    volumes:
+      - todo_data:/var/lib/postgresql/data
+
+  api:
+    build: .
+    container_name: todo-api
+    ports:
+      - "3087:8080"
+    environment:
+      ASPNETCORE_URLS: http://+:8080
+      ASPNETCORE_ENVIRONMENT: Development
+      ConnectionStrings__Default: Host=db;Port=5432;Database=todo_db;Username=todo;Password=todo
+    depends_on:
+      - db
+
+volumes:
+  todo_data:
