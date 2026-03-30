@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
@@ -20,6 +21,22 @@ namespace Todo.Api
             // Add services to the container.
 
             builder.Services.AddControllers();
+
+            builder.Services.Configure<ApiBehaviorOptions>(options =>
+            {
+                options.InvalidModelStateResponseFactory = context =>
+                {
+                    var errors = context.ModelState
+                        .Where(e => e.Value?.Errors.Count > 0)
+                        .ToDictionary(
+                            e => char.ToLowerInvariant(e.Key[0]) + e.Key.Substring(1),
+                            e => e.Value!.Errors.Select(x => x.ErrorMessage).ToArray()
+                        );
+
+                    return new BadRequestObjectResult(new ValidationProblemDetails(errors));
+                };
+            });
+
             // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
             builder.Services.AddEndpointsApiExplorer();
             builder.Services.AddSwaggerGen();

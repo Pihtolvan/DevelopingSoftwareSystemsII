@@ -40,4 +40,9 @@ public class JwtTokenService
 
         return new JwtSecurityTokenHandler().WriteToken(token);
     }
+
+    public int GetExpiresInSeconds()
+    {
+        return _config.GetValue<int>("Jwt:ExpiresMinutes", 60) * 60;
+    }
 }

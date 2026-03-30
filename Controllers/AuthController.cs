@@ -11,7 +11,7 @@ using System.Security.Claims;
 namespace Todo.Api.Controllers;
 
 [ApiController]
-[Route("auth")]
+[Route("api/auth")]
 public class AuthController : ControllerBase
 {
     private readonly AppDbContext _db;
@@ -27,11 +27,11 @@ public class AuthController : ControllerBase
 
     [HttpPost("register")]
     [AllowAnonymous]
-    public async Task<ActionResult<AuthResponse>> Register(RegisterRequest request)
+    public async Task<ActionResult<AuthUserResponse>> Register(RegisterRequest request)
     {
         var exists = await _db.Users.AnyAsync(u => u.Email == request.Email);
         if (exists)
-            return BadRequest("Email already registered.");
+            return Conflict("Email already registered.");
 
         var user = new User
         {
@@ -44,13 +44,17 @@ public class AuthController : ControllerBase
         _db.Users.Add(user);
         await _db.SaveChangesAsync();
 
-        var token = _jwt.CreateToken(user);
-        return Ok(new AuthResponse { Token = token });
+        return CreatedAtAction(nameof(Me), new { }, new AuthUserResponse
+        {
+            Id = user.Id,
+            Email = user.Email,
+            DisplayName = user.DisplayName
+        });
     }
 
     [HttpPost("login")]
     [AllowAnonymous]
-    public async Task<ActionResult<AuthResponse>> Login(LoginRequest request)
+    public async Task<ActionResult<LoginResponse>> Login(LoginRequest request)
     {
         var user = await _db.Users.FirstOrDefaultAsync(u => u.Email == request.Email);
         if (user == null)
@@ -61,7 +65,20 @@ public class AuthController : ControllerBase
             return Unauthorized();
 
         var token = _jwt.CreateToken(user);
-        return Ok(new AuthResponse { Token = token });
+        var expires = _jwt.GetExpiresInSeconds();
+
+        return Ok(new LoginResponse
+        {
+            AccessToken = token,
+            TokenType = "Bearer",
+            ExpiresInSeconds = expires,
+            User = new AuthUserResponse
+            {
+                Id = user.Id,
+                Email = user.Email,
+                DisplayName = user.DisplayName
+            }
+        });
     }
 
     [Authorize]
