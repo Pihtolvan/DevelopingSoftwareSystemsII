@@ -76,6 +76,24 @@ namespace Todo.Api
 
             var app = builder.Build();
 
+            using (var scope = app.Services.CreateScope())
+            {
+                var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+
+                for (var i = 0; i < 10; i++)
+                {
+                    try
+                    {
+                        db.Database.Migrate();
+                        break;
+                    }
+                    catch
+                    {
+                        Thread.Sleep(2000);
+                    }
+                }
+            }
+
             // Configure the HTTP request pipeline.
             if (app.Environment.IsDevelopment())
             {
