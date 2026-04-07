@@ -15,9 +15,9 @@ services:
     build: .
     container_name: todo-api
     ports:
-      - "3087:8080"
+      - "3087:3087"
     environment:
-      ASPNETCORE_URLS: http://+:8080
+      ASPNETCORE_URLS: http://+:3087
       ASPNETCORE_ENVIRONMENT: Development
       ConnectionStrings__Default: Host=db;Port=5432;Database=todo_db;Username=todo;Password=todo
     depends_on:
